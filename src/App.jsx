@@ -7,6 +7,7 @@ import Signup from "./pages/Signup";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LightNavbarDemo from "./pages/Logo";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   const [login, setLogin] = useState(false);
@@ -42,6 +43,7 @@ function App() {
             </ProtectedRoute>
           }
         ></Route>
+        <Route path="/smart-chat/:id" element={<ChatPage></ChatPage>}></Route>
       </Routes>
     </main>
   );

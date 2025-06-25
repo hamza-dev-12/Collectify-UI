@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const AddMembers = ({
   setShowAddMemberCard,
@@ -13,6 +14,7 @@ const AddMembers = ({
   });
 
   const { token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const handleAddMember = (field, value) => {
     try {
@@ -40,7 +42,12 @@ const AddMembers = ({
         }),
       });
 
+      if (response.status === 401) {
+        navigate("/login");
+      }
+
       if (!response.ok) {
+        console.log(response);
         throw new Error("error addding new member");
       }
     } catch (error) {
@@ -55,27 +62,28 @@ const AddMembers = ({
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Add New Member
         </h2>
-
-        <input
-          type="email"
-          placeholder="hamza@example.com"
-          className="bg-card inline-block p-2 mt-4 rounded-xl shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => {
-            handleAddMember("email", e.target.value);
-          }}
-        />
-        <input
-          type="text"
-          placeholder="User Name"
-          className="bg-card inline-block p-2 mt-4 rounded-xl shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => {
-            handleAddMember("name", e.target.value);
-          }}
-        />
+        <section className="md:grid md:grid-cols-1 md:w-1/4 md:mx-auto md:h-[7rem]">
+          <input
+            type="email"
+            placeholder="hamza@example.com"
+            className="bg-card inline-block p-2 mt-4 rounded-xl shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => {
+              handleAddMember("email", e.target.value);
+            }}
+          />
+          <input
+            type="text"
+            placeholder="User Name"
+            className="bg-card inline-block p-2 mt-4 rounded-xl shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => {
+              handleAddMember("name", e.target.value);
+            }}
+          />
+        </section>
 
         <button
           type="submit"
-          className="block bg-blue-600 text-white p-2 w-1/2 rounded-lg hover:bg-blue-700 transition mx-auto mt-4"
+          className="block bg-blue-600 text-white p-2 w-1/2 rounded-lg hover:bg-blue-700 transition mx-auto mt-4 md:w-1/5"
           onClick={(e) => {
             e.preventDefault();
             submitAddMember();
@@ -87,7 +95,7 @@ const AddMembers = ({
         </button>
         <button
           type="button"
-          className="block bg-red-600 text-white p-2 w-1/2 rounded-lg hover:bg-red-700 transition mx-auto mt-4"
+          className="block bg-red-600 text-white p-2 w-1/2 rounded-lg hover:bg-red-700 transition mx-auto mt-4 md:w-1/5"
           onClick={(e) => {
             e.preventDefault();
             setShowAddMemberCard((prev) => !prev);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Overview from "../components/Home/Overview";
 
 const Home = ({ setGroupData }) => {
@@ -8,6 +9,7 @@ const Home = ({ setGroupData }) => {
   const [trigger, setTrigger] = useState(0);
   const { token } = useSelector((state) => state.auth);
   const { userId } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +26,10 @@ const Home = ({ setGroupData }) => {
             "Content-Type": "application/json",
           },
         });
+
+        if (response.status === 401) {
+          navigate("/login");
+        }
 
         if (!response.ok) {
           throw new Error("something went wrong");

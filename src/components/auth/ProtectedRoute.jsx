@@ -27,6 +27,7 @@ const ProtectedRoute = ({ children }) => {
     try {
       authenticate();
     } catch (error) {
+      console.error("token expired");
       navigate("/login");
     }
   }, []);

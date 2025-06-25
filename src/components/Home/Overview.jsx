@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useSelector } from "react-redux";
-
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+import { useNavigate } from "react-router-dom";
 
 const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
   const [showAddGroupForm, setShowAddGroupForm] = useState(false);
@@ -13,6 +12,7 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
   });
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const { user_id: userId } = data;
   data = data.groups;
@@ -41,7 +41,11 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
           base_amount: formData.baseAmount,
         }),
       });
-      delay(2000);
+
+      if (response.status === 401) {
+        navigate("/login");
+      }
+
       if (!response.ok) {
         throw new Error("Something went wrong while creating a group");
       }
@@ -63,7 +67,7 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
         </span>
         !
       </div>
-      <ul className="space-y-8">
+      <ul className="space-y-8 md:grid md:grid-cols-3">
         {data.length > 0 &&
           data.map((d) => {
             const paidCount = d.members.filter(
@@ -72,7 +76,7 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
             return (
               <Link to={`/group/${d.id}`} key={d.id}>
                 <li
-                  className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-98 mt-4"
+                  className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-98 mt-4 md:w-3/4 md:h-[12rem]"
                   onClick={(e) => {
                     setGroupData(d);
                     setShowGroup(Number(d.id));
@@ -85,8 +89,8 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
                     <span
                       className={`text-sm font-semibold px-4 py-2 rounded-full shadow-sm w-1/3 ${
                         paidCount === d.members.length
-                          ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300"
-                          : "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300"
+                          ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 md:w-1/3 text-center"
+                          : "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300 md:w-1/3 text-center"
                       }`}
                     >
                       {paidCount}/{d.members.length} paid

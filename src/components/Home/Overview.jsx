@@ -1,13 +1,21 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
-const Overview = ({ data, name, setShowGroup, setGroupData, setData }) => {
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
   const [showAddGroupForm, setShowAddGroupForm] = useState(false);
   const [formData, setFormData] = useState({
     groupName: "",
     groupId: Date.now().toString(),
     baseAmount: 0,
   });
+  const [loading, setLoading] = useState(false);
+  const { token } = useSelector((state) => state.auth);
+
+  const { user_id: userId } = data;
+  data = data.groups;
 
   const handleChangeInput = (field, value) => {
     setFormData((prev) => {
@@ -17,15 +25,33 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setData }) => {
       };
     });
   };
-  const handleSubmitGroupForm = () => {
-    setShowAddGroupForm(false);
-    setData((prev) => [
-      ...prev,
-      {
-        ...formData,
-        members: [],
-      },
-    ]);
+  const handleSubmitGroupForm = async () => {
+    try {
+      const url = `http://localhost:8000/api/v1/group/create/`;
+      setLoading(true);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          admin: userId,
+          group_name: formData.groupName,
+          base_amount: formData.baseAmount,
+        }),
+      });
+      delay(2000);
+      if (!response.ok) {
+        throw new Error("Something went wrong while creating a group");
+      }
+      setShowAddGroupForm(false);
+      setTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,19 +69,18 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setData }) => {
             const paidCount = d.members.filter(
               (m) => m.status === "paid"
             ).length;
-
             return (
-              <Link to={`/group/${d.groupId}`} key={d.groupId}>
+              <Link to={`/group/${d.id}`} key={d.id}>
                 <li
                   className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-98 mt-4"
                   onClick={(e) => {
                     setGroupData(d);
-                    setShowGroup(Number(d.groupId));
+                    setShowGroup(Number(d.id));
                   }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-xl font-bold text-gray-900 truncate mr-4">
-                      {d.groupName}
+                      {d.group_name}
                     </h2>
                     <span
                       className={`text-sm font-semibold px-4 py-2 rounded-full shadow-sm w-1/3 ${
@@ -144,31 +169,46 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setData }) => {
 
             <button
               type="submit"
-              className="mt-4 w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold p-4 rounded-xl shadow-xl hover:shadow-2xl border-2 border-blue-400 hover:border-blue-300 transition-all duration-300 active:scale-95 transform hover:-translate-y-1 relative overflow-hidden group"
+              className={`mt-4 w-full font-bold p-4 rounded-xl shadow-xl border-2 transition-all duration-300 transform relative overflow-hidden group ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed text-gray-600 border-gray-300"
+                  : "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white hover:shadow-2xl border-blue-400 hover:border-blue-300 active:scale-95 hover:-translate-y-1"
+              }`}
               onClick={(e) => {
                 e.preventDefault();
-                handleSubmitGroupForm();
+                if (!loading) {
+                  handleSubmitGroupForm();
+                }
               }}
+              disabled={loading}
             >
               <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="relative flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Add Group
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Adding Group...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Add Group
+                  </>
+                )}
               </span>
             </button>
-
             <button
               type="button"
               className="mt-4 w-full bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:from-red-500 hover:via-red-600 hover:to-red-700 text-white font-bold p-4 rounded-xl shadow-xl hover:shadow-2xl border-2 border-gray-400 hover:border-red-400 transition-all duration-300 active:scale-95 transform hover:-translate-y-1 relative overflow-hidden group mt-3"

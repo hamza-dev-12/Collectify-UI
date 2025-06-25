@@ -1,50 +1,173 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Graph from "../components/Home/Graph";
 import AddMembers from "../components/Group/AddMembers";
 
-const Group = ({ groupData }) => {
+const Group = ({}) => {
   const navigate = useNavigate();
-
-  const { groupName, groupId, members, baseAmount } = groupData;
-
-  const name = "Muhammad Hamza";
-
+  const [groupData, setGroupData] = useState(null);
   const [counter, setCounter] = useState(0);
   const [memberId, setMemberId] = useState(null);
-  const [stateMembers, setStateMembers] = useState(members);
+  const [stateMembers, setStateMembers] = useState(
+    groupData ? groupData.members : []
+  );
   const [showAddMemberCard, setShowAddMemberCard] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { token } = useSelector((state) => state.auth);
+
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchGroupById = async () => {
+      try {
+        const date = new Date();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+
+        const url = `http://localhost:8000/api/v1/detail/group/${id}/?month=${month}&year=${year}`;
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("something went wrong");
+        }
+
+        const data = await response.json();
+
+        const {
+          group_name: groupName,
+          group_id: groupId,
+          members,
+          base_amount: baseAmount,
+        } = data;
+
+        setGroupData({ groupName, groupId, members, baseAmount });
+        setStateMembers(members);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchGroupById();
+  }, [refreshTrigger]);
+
+  if (!groupData) return;
+
+  const { groupName, baseAmount } = groupData;
 
   const filters = ["All", "Pending", "Paid"];
-
   const paidMembers = stateMembers.filter((m) => m.status === "paid");
   const unpaidMembers = stateMembers.length - paidMembers.length;
-
   const data = [
     { name: "Paid", value: paidMembers.length * baseAmount },
     { name: "Unpaid", value: unpaidMembers * baseAmount },
   ];
 
-  const handleStatusChange = (memberId, status) => {
-    const updatedMembers = stateMembers.map((m) => {
-      return m.memberId === memberId ? { ...m, status: status } : m;
-    });
+  const handleStatusChange = async (memberId, status, paymentId = {}) => {
+    try {
+      if (status === "paid") {
+        const url = `http://localhost:8000/api/v1/payment/create/${memberId}/`;
 
-    setStateMembers(updatedMembers);
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+
+        const formattedDate = `${year}-${month}-${day}`;
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            date: formattedDate,
+            amount: baseAmount,
+          }),
+        });
+
+        if (!response.ok) {
+          console.log(response);
+          throw new Error("Something went wrong");
+        }
+
+        const updatedMembers = stateMembers.map((m) => {
+          return m.group_member_id === memberId ? { ...m, status: status } : m;
+        });
+
+        setStateMembers(updatedMembers);
+      } else {
+        const url = `http://localhost:8000/api/v1/payment/delete/${paymentId}/`;
+
+        const response = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Error deleting the payment");
+        }
+
+        const updatedMembers = stateMembers.map((m) => {
+          if (m.group_member_id === memberId) {
+            return {
+              ...m,
+              status: "pending",
+            };
+          }
+          return m;
+        });
+
+        setStateMembers(updatedMembers);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRefreshTrigger((prev) => prev + 1);
+    }
   };
 
-  const deleteUser = (memberId) => {
-    const updateMembers = stateMembers.filter((m) => m.memberId !== memberId);
+  const deleteUser = async (memberId) => {
+    try {
+      const url = `http://localhost:8000/api/v1/member/delete/${memberId}/`;
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    setStateMembers(updateMembers);
-    setMemberId(null);
+      if (!response.ok) {
+        throw new Error("Error while deleting the user");
+      }
+
+      setStateMembers((prev) => {
+        return prev.filter((m) => {
+          return m.group_member_id !== memberId;
+        });
+      });
+
+      setMemberId(null);
+    } catch (error) {
+      console.error(error);
+    }
   };
-
   if (showAddMemberCard) {
     return (
       <AddMembers
         setShowAddMemberCard={setShowAddMemberCard}
         setTotalMembers={setStateMembers}
+        groupId={id}
+        setRefreshTrigger={setRefreshTrigger}
       ></AddMembers>
     );
   }
@@ -116,61 +239,79 @@ const Group = ({ groupData }) => {
 
           {/* Members */}
           <div className="max-h-96 overflow-y-auto">
-            {stateMembers.map((m, index) => (
-              <div
-                key={m.memberId}
-                className={`flex items-center justify-between gap-2 px-4 py-4 transition-all duration-200 ${
-                  index !== stateMembers.length - 1
-                    ? "border-b border-gray-700"
-                    : ""
-                } ${
-                  m.memberId === memberId
-                    ? "bg-red-900/30 border-l-4 border-red-500"
-                    : "hover:bg-gray-700/50 active:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setMemberId(m.memberId);
-                }}
-              >
-                <p
-                  className={`flex-1 font-medium text-center ${
-                    m.memberId === memberId ? "text-red-400" : "text-gray-100"
+            {stateMembers
+              .filter((m) => {
+                if (filters[counter] == "All") {
+                  return m;
+                } else if (filters[counter] === "Paid" && m.status === "paid") {
+                  return m;
+                } else if (
+                  filters[counter] === "Pending" &&
+                  m.status === "pending"
+                ) {
+                  return m;
+                }
+              })
+              .map((m, index) => (
+                <div
+                  key={m.group_member_id}
+                  className={`flex items-center justify-between gap-2 px-4 py-4 transition-all duration-200 ${
+                    index !== stateMembers.length - 1
+                      ? "border-b border-gray-700"
+                      : ""
+                  } ${
+                    m.memberId === memberId
+                      ? "bg-red-900/30 border-l-4 border-red-500"
+                      : "hover:bg-gray-700/50 active:bg-gray-700"
                   }`}
+                  onClick={() => {
+                    setMemberId(m.group_member_id);
+                  }}
                 >
-                  {name}
-                </p>
-
-                <div className="flex-1 px-2">
-                  <select
-                    value={m.status}
-                    onChange={(e) => {
-                      console.log(m.memberId);
-                      setMemberId(m.memberId);
-                      handleStatusChange(m.memberId, e.target.value);
-                    }}
-                    className={`w-full text-center font-semibold text-sm px-2 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 transition-all ${
-                      m.status === "paid"
-                        ? "bg-green-600 text-white focus:ring-green-400"
-                        : "bg-yellow-500 text-yellow-900 focus:ring-yellow-400"
+                  <p
+                    className={`flex-1 font-medium text-center ${
+                      m["group_member_id"] === memberId
+                        ? "text-red-400"
+                        : "text-gray-100"
                     }`}
                   >
-                    <option
-                      value="pending"
-                      className="text-yellow-900 bg-white"
-                    >
-                      Pending
-                    </option>
-                    <option value="paid" className="text-green-900 bg-white">
-                      Paid
-                    </option>
-                  </select>
-                </div>
+                    {m.name}
+                  </p>
 
-                <p className="flex-1 text-gray-300 text-center text-sm">
-                  {m.date ? m.date : "DD-MM-YY"}
-                </p>
-              </div>
-            ))}
+                  <div className="flex-1 px-2">
+                    <select
+                      value={m.status}
+                      onChange={(e) => {
+                        setMemberId(m.group_member_id);
+                        handleStatusChange(
+                          m.group_member_id,
+                          e.target.value,
+                          m.payment ? m.payment.payment_id : null
+                        );
+                      }}
+                      className={`w-full text-center font-semibold text-sm px-2 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 transition-all ${
+                        m.status === "paid"
+                          ? "bg-green-600 text-white focus:ring-green-400"
+                          : "bg-yellow-500 text-yellow-900 focus:ring-yellow-400"
+                      }`}
+                    >
+                      <option
+                        value="pending"
+                        className="text-yellow-900 bg-white"
+                      >
+                        Pending
+                      </option>
+                      <option value="paid" className="text-green-900 bg-white">
+                        Paid
+                      </option>
+                    </select>
+                  </div>
+
+                  <p className="flex-1 text-gray-300 text-center text-sm">
+                    {m.payment ? m.payment.date : "DD-MM-YY"}
+                  </p>
+                </div>
+              ))}
           </div>
 
           {/* Delete Button */}

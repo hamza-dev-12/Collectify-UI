@@ -1,21 +1,53 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
-const AddMembers = ({ setShowAddMemberCard, setTotalMembers }) => {
+const AddMembers = ({
+  setShowAddMemberCard,
+  setTotalMembers,
+  groupId,
+  setRefreshTrigger,
+}) => {
   const [member, setMember] = useState({
     name: "",
     email: "",
-    id: Date.now().toString(),
-    date: new Date().toLocaleString("en-GB"),
-    status: "pending",
   });
 
+  const { token } = useSelector((state) => state.auth);
+
   const handleAddMember = (field, value) => {
-    setMember((prev) => {
-      return {
-        ...prev,
-        [field]: value,
-      };
-    });
+    try {
+      setMember((prev) => {
+        return {
+          ...prev,
+          [field]: value,
+        };
+      });
+    } catch (error) {}
+  };
+
+  const submitAddMember = async () => {
+    try {
+      const url = `http://localhost:8000/api/v1/member/create/${groupId}/`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          member_name: member.name,
+          email: member.email,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("error addding new member");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRefreshTrigger((prev) => prev + 1);
+    }
   };
   return (
     <section className="grid items-center h-full">
@@ -46,6 +78,7 @@ const AddMembers = ({ setShowAddMemberCard, setTotalMembers }) => {
           className="block bg-blue-600 text-white p-2 w-1/2 rounded-lg hover:bg-blue-700 transition mx-auto mt-4"
           onClick={(e) => {
             e.preventDefault();
+            submitAddMember();
             setTotalMembers((prev) => [...prev, member]);
             setShowAddMemberCard(false);
           }}

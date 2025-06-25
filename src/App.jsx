@@ -5,15 +5,14 @@ import Home from "./pages/Home";
 import Group from "./pages/Group";
 import Signup from "./pages/Signup";
 import { Routes, Route, Navigate } from "react-router-dom";
-import LogoDemo from "./pages/Logo";
-import DarkNavbarDemo from "./pages/Logo";
 import LightNavbarDemo from "./pages/Logo";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   const [login, setLogin] = useState(false);
   const [groupData, setGroupData] = useState(null);
+  const [userId, setUserId] = useState(null);
 
-  console.log(login);
   return (
     <main className="h-dvh bg-background">
       <LightNavbarDemo />
@@ -23,16 +22,26 @@ function App() {
           element={<Navigate to={`${login ? "/home" : "/login"}`} replace />}
         />
         <Route path="/signup" element={<Signup />}></Route>
-        <Route path="/login" element={<Login setLogin={setLogin} />}></Route>
+        <Route
+          path="/login"
+          element={<Login setLogin={setLogin} setUserId={setUserId} />}
+        ></Route>
         <Route
           path="/home"
-          element={<Home setGroupData={setGroupData} />}
+          element={
+            <ProtectedRoute>
+              <Home setGroupData={setGroupData} userId={userId} />
+            </ProtectedRoute>
+          }
         ></Route>
         <Route
           path="group/:id"
-          element={<Group groupData={groupData}></Group>}
+          element={
+            <ProtectedRoute>
+              <Group></Group>
+            </ProtectedRoute>
+          }
         ></Route>
-        {/* <Route path="/logo" element={<DarkNavbarDemo></DarkNavbarDemo>}></Route> */}
       </Routes>
     </main>
   );

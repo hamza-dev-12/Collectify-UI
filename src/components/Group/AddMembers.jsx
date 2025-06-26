@@ -29,7 +29,7 @@ const AddMembers = ({
 
   const submitAddMember = async () => {
     try {
-      const url = `http://localhost:8000/api/v1/member/create/${groupId}/`;
+      const url = `https://collectify-apis.vercel.app/api/v1/member/create/${groupId}/`;
       const response = await fetch(url, {
         method: "POST",
         headers: {

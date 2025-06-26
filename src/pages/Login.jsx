@@ -26,7 +26,7 @@ const Login = ({ setUserId }) => {
     setError("");
 
     try {
-      const url = "http://localhost:8000/api/v1/user/login/";
+      const url = "https://collectify-apis.vercel.app/api/v1/user/login/";
       const response = await fetch(url, {
         method: "POST",
         headers: {

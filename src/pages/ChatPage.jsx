@@ -29,7 +29,7 @@ export default function ChatPage() {
       const year = date.getFullYear();
 
       // Simulate delay from backend
-      const url = `http://localhost:8000/api/v1/chat/${id}/`;
+      const url = `https://collectify-apis.vercel.app/api/v1/chat/${id}/`;
       const response = await fetch(url, {
         method: "POST",
         headers: {

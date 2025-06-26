@@ -17,7 +17,7 @@ const Home = ({ setGroupData }) => {
         const date = new Date();
         const month = date.getMonth() + 1;
         const year = date.getFullYear();
-        const url = `http://localhost:8000/api/v1/detail/${userId}/?month=${month}&year=${year}`;
+        const url = `https://collectify-apis.vercel.app/api/v1/detail/${userId}/?month=${month}&year=${year}`;
 
         const response = await fetch(url, {
           method: "GET",

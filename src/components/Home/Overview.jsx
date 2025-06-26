@@ -27,7 +27,7 @@ const Overview = ({ data, name, setShowGroup, setGroupData, setTrigger }) => {
   };
   const handleSubmitGroupForm = async () => {
     try {
-      const url = `http://localhost:8000/api/v1/group/create/`;
+      const url = `https://collectify-apis.vercel.app/api/v1/group/create/`;
       setLoading(true);
       const response = await fetch(url, {
         method: "POST",

@@ -38,7 +38,7 @@ const Signup = () => {
         confirmPassword &&
         password === confirmPassword
       ) {
-        const url = `http://localhost:8000/api/v1/user/signup/`;
+        const url = `https://collectify-apis.vercel.app/api/v1/user/signup/`;
         setLoading(true);
         const response = await fetch(url, {
           method: "POST",

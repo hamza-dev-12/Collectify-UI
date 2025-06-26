@@ -26,7 +26,7 @@ const Group = ({}) => {
         const month = date.getMonth() + 1;
         const year = date.getFullYear();
 
-        const url = `http://localhost:8000/api/v1/detail/group/${id}/?month=${month}&year=${year}`;
+        const url = `https://collectify-apis.vercel.app/api/v1/detail/group/${id}/?month=${month}&year=${year}`;
 
         const response = await fetch(url, {
           method: "GET",
@@ -76,7 +76,7 @@ const Group = ({}) => {
   const handleStatusChange = async (memberId, status, paymentId = {}) => {
     try {
       if (status === "paid") {
-        const url = `http://localhost:8000/api/v1/payment/create/${memberId}/`;
+        const url = `https://collectify-apis.vercel.app/api/v1/payment/create/${memberId}/`;
 
         const date = new Date();
         const year = date.getFullYear();
@@ -112,7 +112,7 @@ const Group = ({}) => {
 
         setStateMembers(updatedMembers);
       } else {
-        const url = `http://localhost:8000/api/v1/payment/delete/${paymentId}/`;
+        const url = `https://collectify-apis.vercel.app/api/v1/payment/delete/${paymentId}/`;
 
         const response = await fetch(url, {
           method: "DELETE",
@@ -151,7 +151,7 @@ const Group = ({}) => {
 
   const deleteUser = async (memberId) => {
     try {
-      const url = `http://localhost:8000/api/v1/member/delete/${memberId}/`;
+      const url = `https://collectify-apis.vercel.app/api/v1/member/delete/${memberId}/`;
       const response = await fetch(url, {
         method: "DELETE",
         headers: {

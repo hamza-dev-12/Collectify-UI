@@ -1,94 +1,65 @@
-import { use, useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Overview from "../components/Home/Overview";
-import Group from "./Group";
-
-const backendResponse = {
-  status: 200,
-  result: [
-    {
-      groupId: 1,
-      groupName: "Vanilla Building",
-      members: [
-        {
-          memberId: 1,
-          status: "pending",
-          date: "",
-        },
-        {
-          memberId: 2,
-          status: "paid",
-          date: "4-June-2025",
-        },
-      ],
-      baseAmount: 2000,
-    },
-    {
-      groupId: 2,
-      groupName: "Garrison Building",
-      members: [
-        {
-          memberId: 4,
-          status: "paid",
-          date: "2025-06-03",
-        },
-        {
-          memberId: 5,
-          status: "pending",
-          date: "",
-        },
-        {
-          memberId: 6,
-          status: "paid",
-          date: "2025-06-02",
-        },
-      ],
-      baseAmount: 1000,
-    },
-  ],
-};
 
 const Home = ({ setGroupData }) => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(null);
   const [showGroup, setShowGroup] = useState(null);
-  const name = "Hamza";
-  console.log(data);
+  const [trigger, setTrigger] = useState(0);
+  const { token } = useSelector((state) => state.auth);
+  const { userId } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      setData(backendResponse.result);
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
-  console.log(showGroup);
+    const fetchData = async () => {
+      try {
+        const date = new Date();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const url = `https://collectify-apis.vercel.app/api/v1/detail/${userId}/?month=${month}&year=${year}`;
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.status === 401) {
+          navigate("/login");
+        }
+
+        if (!response.ok) {
+          throw new Error("something went wrong");
+        }
+
+        const data = await response.json();
+        setData(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchData();
+  }, [trigger]);
+
   return (
     <section
       className={`min-h-screen  w-h-screen ${
         !showGroup && "bg-background px-4 py-6"
       }`}
     >
-      {!showGroup && (
+      {data && (
         <Overview
           data={data}
-          name={"hamza"}
+          name={data.username}
           setShowGroup={setShowGroup}
           setGroupData={setGroupData}
           setData={setData}
+          setTrigger={setTrigger}
         ></Overview>
       )}
-      {/* {showGroup === -1 ? (
-        <Overview
-          data={data}
-          name={"hamza"}
-          setShowGroup={setShowGroup}
-        ></Overview>
-      ) : (
-        <Group
-          groupData={data.find((d) => d.groupId === showGroup)}
-          setData={setData}
-        />
-      )} */}
     </section>
   );
 };

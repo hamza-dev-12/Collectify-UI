@@ -1,12 +1,63 @@
-# React + Vite
+# Collectify 🏢💸 — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live Demo:** [https://collectify-ui.vercel.app](https://collectify-ui.vercel.app)
 
-Currently, two official plugins are available:
+Collectify is a modern web application designed to automate and simplify the process of building maintenance collection. No more spreadsheets, confusion, or manual tracking — just clear, real-time financial visibility with powerful group management tools and analytics.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This repository contains the frontend built with **React + Vite**, offering a fast, responsive, and intuitive user experience.
 
-## Expanding the ESLint configuration
+**Backend Repo:** [CollectifyApis (Django + Gemini)](https://github.com/hamza-dev-12/CollectifyApis)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🌟 Features
+
+- 🔐 **User Authentication** — Secure account registration and login system.
+- 🏘️ **Group Management** — Create and manage buildings as groups with multiple members.
+- 📊 **Payment Tracking** — Update and monitor payment status: _Paid_ or _Pending_.
+- 📈 **Real-Time Analytics** — Interactive charts to visualize payment distributions.
+- 💬 **Smart Chat (Natural Language Querying)** — Admins can interact with their group data using simple human language (powered by AI).
+
+---
+
+## 🧠 Motivation
+
+Managing maintenance fees for residential or commercial buildings manually is error-prone and inefficient. Residents forget who paid and who didn’t, and there's often no centralized system to track these dues.
+
+Collectify solves this problem by offering:
+
+- Centralized group-based payment management.
+- Visual insights into paid and pending amounts.
+- A smart assistant to query group status effortlessly.
+
+---
+
+## 🚀 Tech Stack
+
+- **Frontend:** React, Vite, TailwindCSS
+- **Backend** Django, Django Rest Framework
+- **Smart Assistanct**: Gemini
+- **Charts:** Recharts
+- **Deployment:** Vercel
+
+---
+
+## 📸 Preview
+
+![Dashboard Preview](preview.png) <!-- Optional: Add preview screenshots -->
+
+---
+
+## 🛠️ Setup Instructions
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/collectify-frontend.git
+cd collectify-frontend
+
+# Install dependencies
+npm install
+
+# Start the dev server
+npm run dev
+```
